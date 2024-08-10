@@ -53,12 +53,13 @@ def sample2():
     return render_template("sample2.html")
 
 
-@app.route("/forum/get_data", methods=["POST", "GET"])
+@app.route("/forum/get_data", methods=["POST"])
 def get_forum_data():
-    first_root: Comment = db.session.execute(
-        db.select(Comment).filter_by(parent=None)
-    ).first()
-    return jsonify(first_root.to_dict())
+    data = request.get_json()
+    if not "id" in data:
+        return abort(505)
+    data: Comment = db.session.get(Comment, int(data["id"]))
+    return jsonify(data.to_dict())
 
 
 @app.route("/forum/append_comment", methods=["POST"])

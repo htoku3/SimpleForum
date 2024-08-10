@@ -33,7 +33,8 @@
 
   window.main = function () {
       var board = new Board(null, null, {
-          submit_url: "/forum/append_comment",
+        get_data_url: "/forum/get_data",
+        submit_url: "/forum/append_comment",
           quill_settings: {
               modules: {
                   syntax: true,

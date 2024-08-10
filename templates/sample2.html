@@ -10,41 +10,42 @@
 <script type="module" src="{{ url_for('static', filename='board.js') }}"></script>
 
 <script type="module">
-  const toolbarOptions = [
-      ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-      ['blockquote', 'code-block'],
-      ['link', 'image', 'video', 'formula'],
+    const toolbarOptions = [
+        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video', 'formula'],
 
-      [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
-      [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
-      [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+        [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+        [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+        [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
 
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
 
-      [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-      [{ 'font': [] }],
-      [{ 'align': [] }],
+        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+        [{ 'font': [] }],
+        [{ 'align': [] }],
 
-      ['clean']                                         // remove formatting button
-  ];
+        ['clean']                                         // remove formatting button
+    ];
 
-  import Board from "./static/board.js"
+    import Board from "./static/board.js"
 
-  window.main = function () {
-      var board = new Board(null, null, {
-          submit_url: "/forum/append_comment",
-          user_name: null,
-          disable_topics: true,
-          quill_settings: {
-              modules: {
-                  syntax: true,
-                  toolbar: toolbarOptions
-              },
-              theme: 'snow'
-          }
-      })
-      board.init_container(document.getElementById("board"))
-  }
+    window.main = function () {
+        var board = new Board(null, null, {
+            get_data_url: "/forum/get_data",
+            submit_url: "/forum/append_comment",
+            user_name: null,
+            disable_topics: true,
+            quill_settings: {
+                modules: {
+                    syntax: true,
+                    toolbar: toolbarOptions
+                },
+                theme: 'snow'
+            }
+        })
+        board.init_container(document.getElementById("board"))
+    }
 </script>
 {% endblock %}

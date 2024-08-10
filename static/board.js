@@ -91,12 +91,14 @@ export default class Board {
         this.card_div.tabIndex = tabIndexMaker.get()
         this.card_div.classList.add("card", "row")
         this.card_div.addEventListener("focus", e => {
+            // Update data before showing edit area.
+            this.update_data()
             this.get_root().close_reply_editor()
             if (!this.parent) return
             this.card_div.classList.add("border-primary")
             let header = this.card_div.querySelector(".card-header")
             if (header) {
-                header.classList.remove("text-bg-secondary") 
+                header.classList.remove("text-bg-secondary")
                 header.classList.add("text-bg-primary")
             }
             this.editor_div.style.removeProperty("display")
@@ -151,6 +153,7 @@ export default class Board {
 
         this.editor_div = document.createElement("div")
         this.editor_div.classList.add("row", "my-3")
+        if (this.parent) this.editor_div.style.display = "none"
         {
             if (!this.parent && !this.settings.user_name) {
                 let uname_input_group = document.createElement("div")
@@ -199,6 +202,7 @@ export default class Board {
             this.show_initial()
         }
 
+        // Create an empty root node if there are no topics at the root node
         if (!this.data && this.is_null_node) {
             fetch(this.settings.submit_url, {
                 method: "POST",
@@ -224,6 +228,25 @@ export default class Board {
     }
 
     update_data(data) {
+        if (!data) {
+            if (!this.data.id) return
+            fetch(this.settings.get_data_url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ id: this.data.id })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    this.data = data
+                    this.children = data.children.map(child_data =>
+                        new Board(this, child_data, this.settings))
+                    this.update_div()
+                })
+            return
+        }
+
         this.data = data
         this.children = data.children.map(child_data =>
             new Board(this, child_data, this.settings))
@@ -269,12 +292,6 @@ export default class Board {
             if (hr) this.card_div.querySelector(".hr").style.display = "none"
             children_div.style.display = "none"
         }
-
-        if (this.parent) {
-            this.editor_div.style.display = "none"
-        } else {
-            this.editor_div.style.removeProperty("display")
-        }
     }
 
     exec_submit() {
@@ -307,8 +324,7 @@ export default class Board {
                 if (!this.data) {
                     this.update_data(new_comment)
                 } else {
-                    this.data.children.push(new_comment)
-                    this.update_data(this.data)    
+                    this.update_data()
                 }
             })
         this.editor.deleteText(0, this.editor.getLength())
