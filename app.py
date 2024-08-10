@@ -66,12 +66,9 @@ def append_comment():
         parent = db.session.get(Comment, int(new_comment["parent_id"]))
 
     title = None
-    if parent is None:
-        if "title" in new_comment:
-            title = new_comment["title"]
-        else:
-            return abort(500, "Generating a new topic without title.")
-
+    if "title" in new_comment:
+        title = new_comment["title"]
+ 
     new_comment = Comment(
         writer=new_comment["writer"],
         date=datetime.now(),

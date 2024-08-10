@@ -30,21 +30,18 @@ export class Board {
      * 
      * @param {Board} parent 
      * @param {object} init_data
-     * @param {string} user_name
-     * @param {EventListener} submit
-     * @param {object} options
+     * @param {object} settings
      */
-    constructor(parent, init_data, user_name, submit, options) {
+    constructor(parent, init_data, settings) {
         this.parent = parent
         this.data = init_data
-        this.user_name = user_name
-        this.options = options
+        this.settings = settings
+        this.is_null_node = !this.parent && settings?.disable_topics
         if (init_data) {
-            this.children = init_data.children.map(data => new Board(this, data, user_name, submit, options))
+            this.children = init_data.children.map(data => new Board(this, data, settings))
         } else {
             this.children = []
         }
-        this.submit = submit
     }
 
     get_root() {
@@ -61,8 +58,11 @@ export class Board {
         }
         this.card_div.classList.remove("border-primary")
         this.card_div.classList.add("border-secondary")
-        this.card_div.querySelector(".card-header").classList.remove("text-bg-primary")
-        this.card_div.querySelector(".card-header").classList.add("text-bg-secondary")
+        let header = this.card_div.querySelector(".card-header")
+        if (header) {
+            header.classList.remove("text-bg-primary")
+            header.classList.add("text-bg-secondary")
+        }
 
         this.children.forEach(element => {
             element.close_reply_editor()
@@ -72,12 +72,12 @@ export class Board {
     set_button_status() {
         this.button.disabled = (this.editor.getText().trim() === "")
         let title_input = this.card_div.querySelector(".title-input-group")
-        if (title_input.style.display != "none") {
+        if (title_input && title_input.style.display != "none") {
             this.button.disabled |= title_input.querySelector("input[type='text']").value.trim() === ""
         }
 
-        let uname_input = this.card_div.querySelector(":scope > .card-body > .row > .uname-input-group")
-        if (uname_input.style.display != "none") {
+        let uname_input = this.card_div.querySelector(".uname-input-group")
+        if (uname_input) {
             this.button.disabled |= uname_input.querySelector("input[type='text']").value.trim() === ""
         }
     }
@@ -95,51 +95,58 @@ export class Board {
             this.get_root().close_reply_editor()
             if (!this.parent) return
             this.card_div.classList.add("border-primary")
-            this.card_div.querySelector(".card-header").classList.remove("text-bg-secondary")
-            this.card_div.querySelector(".card-header").classList.add("text-bg-primary")
+            let header = this.card_div.querySelector(".card-header")
+            if (header) {
+                header.classList.remove("text-bg-secondary") 
+                header.classList.add("text-bg-primary")
+            }
             this.editor_div.style.removeProperty("display")
         })
 
-        let card_head = document.createElement("div")
-        card_head.classList.add("card-header", "text-bg-secondary")
-        this.card_div.appendChild(card_head)
+        if (!this.is_null_node) {
+            let card_head = document.createElement("div")
+            card_head.classList.add("card-header", "text-bg-secondary")
+            this.card_div.appendChild(card_head)
+        }
 
         let card_body = document.createElement("div")
         card_body.classList.add("card-body")
 
-        let title_input_group = document.createElement("div")
-        title_input_group.classList.add("input-group", "title-input-group")
-        title_input_group.style.display = "none"
-        let title_span = document.createElement("span")
-        title_span.classList.add("input-group-text", "form-control-lg")
-        title_span.textContent = "Title"
-        card_body.appendChild(title_span)
-        let title_input = document.createElement("input")
-        title_input.addEventListener("change", e => this.set_button_status())
-        title_input.classList.add("form-control", "form-control-lg")
-        title_input.type = "text"
-        title_input.id = Board.gen_id()
-        title_input_group.appendChild(title_span)
-        title_input_group.appendChild(title_input)
-        card_body.appendChild(title_input_group)
+        if (!this.is_null_node) {
+            let title_input_group = document.createElement("div")
+            title_input_group.classList.add("input-group", "title-input-group")
+            title_input_group.style.display = "none"
+            let title_span = document.createElement("span")
+            title_span.classList.add("input-group-text", "form-control-lg")
+            title_span.textContent = "Title"
+            card_body.appendChild(title_span)
+            let title_input = document.createElement("input")
+            title_input.addEventListener("change", e => this.set_button_status())
+            title_input.classList.add("form-control", "form-control-lg")
+            title_input.type = "text"
+            title_input.id = Board.gen_id()
+            title_input_group.appendChild(title_span)
+            title_input_group.appendChild(title_input)
+            card_body.appendChild(title_input_group)
 
-        let content_div = document.createElement("div")
-        content_div.classList.add("content", "row", "mb-3")
-        content_div.style.display = "none"
-        card_body.appendChild(content_div)
+            let content_div = document.createElement("div")
+            content_div.classList.add("content", "row", "mb-3")
+            content_div.style.display = "none"
+            card_body.appendChild(content_div)
 
-        let hr = document.createElement("div")
-        hr.classList.add("hr", "border-secondary", "border-bottom", "border-3")
-        hr.style.display = "none"
-        card_body.appendChild(hr)
+            let hr = document.createElement("div")
+            hr.classList.add("hr", "border-secondary", "border-bottom", "border-3")
+            hr.style.display = "none"
+            card_body.appendChild(hr)
+        }
 
         let children_div = document.createElement("div")
         children_div.classList.add("children", "row", "border-secondary", "border-3")
         if (this.parent) {
             children_div.classList.add("ms-3", "ps-3", "border-start")
         } else {
-            if (!this.options?.disable_topics)
-            children_div.classList.add("mx-2", "px-2")
+            if (!this.is_null_node)
+                children_div.classList.add("mx-2", "px-2")
         }
         children_div.style.display = "none"
         card_body.appendChild(children_div)
@@ -147,20 +154,22 @@ export class Board {
         this.editor_div = document.createElement("div")
         this.editor_div.classList.add("row", "my-3")
         {
-            let uname_input_group = document.createElement("div")
-            uname_input_group.classList.add("input-group", "uname-input-group")
-            if (this.user_name || this.parent) uname_input_group.style.display = "none"
-            let uname_span = document.createElement("span")
-            uname_span.classList.add("uname-group-text", "form-label", "form-control-sm")
-            uname_span.textContent = "Your name"
-            card_body.appendChild(uname_span)
-            let uname_input = document.createElement("input")
-            uname_input.addEventListener("change", e => { this.set_button_status() })
-            uname_input.classList.add("form-control", "form-control-sm")
-            uname_input.type = "text"
-            uname_input_group.appendChild(uname_span)
-            uname_input_group.appendChild(uname_input)
-            this.editor_div.appendChild(uname_input_group)
+            if (!this.parent && !this.settings.user_name) {
+                let uname_input_group = document.createElement("div")
+                uname_input_group.classList.add("input-group", "uname-input-group")
+                if (this.settings.user_name || this.parent) uname_input_group.style.display = "none"
+                let uname_span = document.createElement("span")
+                uname_span.classList.add("uname-group-text", "form-label", "form-control-sm")
+                uname_span.textContent = "Your name"
+                card_body.appendChild(uname_span)
+                let uname_input = document.createElement("input")
+                uname_input.addEventListener("change", e => { this.set_button_status() })
+                uname_input.classList.add("form-control", "form-control-sm")
+                uname_input.type = "text"
+                uname_input_group.appendChild(uname_span)
+                uname_input_group.appendChild(uname_input)
+                this.editor_div.appendChild(uname_input_group)
+            }
 
             let editor = document.createElement("div")
             editor.id = Board.gen_id()
@@ -187,30 +196,28 @@ export class Board {
         this.div.appendChild(div_col)
         root_container.appendChild(this.div)
 
-        if (this.data) {
+        if (this.data || this.is_null_node) {
             this.update_div()
         } else {
             this.show_initial()
         }
 
-        if (!this.parent && !this.data && this.options?.disable_topics) {
-            this.submit({
-                board: this,
-                comment: {
-                    writer: "",
-                    content: "",
-                    title: ""
-                },
+        if (!this.data && this.is_null_node) {
+            fetch(this.settings.submit_url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ writer: "", content: "" })
             })
+                .then(response => response.json())
+                .then(data => this.update_data(data))
         }
-
     }
 
     show_initial() {
         let card_head = this.card_div.querySelector(".card-header")
         Board.cleanup(card_head)
         let writer = document.createElement("span")
-        writer.textContent = this.user_name
+        writer.textContent = this.settings.user_name
         card_head.appendChild(writer)
 
         let card_body = this.card_div.querySelector(".card-body")
@@ -222,13 +229,13 @@ export class Board {
     update_data(data) {
         this.data = data
         this.children = data.children.map(child_data =>
-            new Board(this, child_data, this.user_name, this.submit, this.options))
+            new Board(this, child_data, this.settings))
         this.update_div()
     }
 
     update_div() {
         let card_head = this.card_div.querySelector(".card-header")
-        if (this.parent || !(this?.options.disable_topics)) {
+        if (card_head) {
             Board.cleanup(card_head)
             let writer = document.createElement("span")
             writer.textContent = this.data.writer
@@ -244,36 +251,27 @@ export class Board {
                 title_span.classList.add("h3", "me-5")
                 card_head.appendChild(title_span)
             }
-
             this.card_div.querySelector(".title-input-group").style.display = "none"
-            let content = this.card_div.querySelector(".content")
-            content.style.removeProperty("display")
-            content.innerHTML = this.data.content
-
-            let children_div = this.card_div.querySelector(".children")
-            Board.cleanup(children_div)
-            if (this.children.length > 0) {
-                this.card_div.querySelector(".hr").style.removeProperty("display")
-                this.children.forEach(board => board.init_container(children_div))
-                children_div.style.removeProperty("display")
-            } else {
-                this.card_div.querySelector(".hr").style.display = "none"
-                children_div.style.display = "none"
-            }
-        } else {
-            card_head.style.display = "none"
-            this.card_div.querySelector(".title-input-group").style.display = "none"
-            let children_div = this.card_div.querySelector(".children")
-            Board.cleanup(children_div)
-            if (this.children.length > 0) {
-                this.children.forEach(board => board.init_container(children_div))
-                children_div.style.removeProperty("display")
-            } else {
-                this.card_div.querySelector(".hr").style.display = "none"
-                children_div.style.display = "none"
-            }
         }
 
+        let content = this.card_div.querySelector(".content")
+        if (content) {
+            content.style.removeProperty("display")
+            content.innerHTML = this.data.content
+        }
+
+        let children_div = this.card_div.querySelector(".children")
+        Board.cleanup(children_div)
+        if (this.children.length > 0) {
+            let hr = this.card_div.querySelector(".hr")
+            if (hr) hr.style.removeProperty("display")
+            this.children.forEach(board => board.init_container(children_div))
+            children_div.style.removeProperty("display")
+        } else {
+            let hr = this.card_div.querySelector(".hr")
+            if (hr) this.card_div.querySelector(".hr").style.display = "none"
+            children_div.style.display = "none"
+        }
 
         if (this.parent) {
             this.editor_div.style.display = "none"
@@ -285,24 +283,32 @@ export class Board {
     exec_submit() {
         let title = null
         let title_input = this.card_div.querySelector(".title-input-group")
-        if (title_input.style.display != "none") {
+        if (this.title_input && title_input.style.display != "none") {
             title = title_input.querySelector("input[type='text']").value
         }
 
-        let writer = this.user_name
+        let writer = this.settings.user_name
         if (!writer) {
-            let uname_input = this.get_root().card_div.querySelector(":scope > .card-body > .row > .uname-input-group")
+            let uname_input = this.get_root().card_div.querySelector(".uname-input-group")
             writer = uname_input.querySelector("input[type='text']").value
         }
-        this.submit({
-            board: this,
-            comment: {
+
+        fetch(this.settings.submit_url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
                 parent_id: this.data?.id,
                 writer: writer,
                 content: this.editor.getSemanticHTML(),
                 title: title
-            },
+            })
         })
+            .then(response => response.json())
+            .then(data => {
+                this.update_data(data)
+            })
         this.editor.deleteText(0, this.editor.getLength())
     }
 }
