@@ -11,13 +11,9 @@ class global_id {
     }
 }
 
-var ID = new global_id()
+var tabIndexMaker = new global_id()
 
 export default class Board {
-    static gen_id() {
-        return "id-" + URL.createObjectURL(new Blob()).slice(-36)
-    }
-
     /**
      * 
      * @param {HTMLElement} elem 
@@ -92,7 +88,7 @@ export default class Board {
         div_col.classList.add("col")
 
         this.card_div = document.createElement("div")
-        this.card_div.tabIndex = ID.get()
+        this.card_div.tabIndex = tabIndexMaker.get()
         this.card_div.classList.add("card", "row")
         this.card_div.addEventListener("focus", e => {
             this.get_root().close_reply_editor()
@@ -127,7 +123,6 @@ export default class Board {
             title_input.addEventListener("change", e => this.set_button_status())
             title_input.classList.add("form-control", "form-control-lg")
             title_input.type = "text"
-            title_input.id = Board.gen_id()
             title_input_group.appendChild(title_span)
             title_input_group.appendChild(title_input)
             card_body.appendChild(title_input_group)
@@ -175,7 +170,6 @@ export default class Board {
             }
 
             let editor = document.createElement("div")
-            editor.id = Board.gen_id()
             this.editor_div.appendChild(editor)
             this.editor = new Quill(editor, this.settings.quill_settings)
             this.editor.on("text-change", (delta, oldDelta, source) => this.set_button_status())
@@ -286,7 +280,7 @@ export default class Board {
     exec_submit() {
         let title = null
         let title_input = this.card_div.querySelector(".title-input-group")
-        if (this.title_input && title_input.style.display != "none") {
+        if (title_input && title_input.style.display != "none") {
             title = title_input.querySelector("input[type='text']").value
         }
 
@@ -310,8 +304,12 @@ export default class Board {
         })
             .then(response => response.json())
             .then(new_comment => {
-                this.data.children.push(new_comment)
-                this.update_data(this.data)
+                if (!this.data) {
+                    this.update_data(new_comment)
+                } else {
+                    this.data.children.push(new_comment)
+                    this.update_data(this.data)    
+                }
             })
         this.editor.deleteText(0, this.editor.getLength())
     }
