@@ -1,7 +1,7 @@
 import { Board } from "./board.js"
 
 window.main = function () {
-    var board = new Board(null, null, "foo bar", event => {
+    var board = new Board(null, null, null, event => {
         fetch("/forum/append_comment", {
             method: "POST",
             headers: {

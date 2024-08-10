@@ -72,6 +72,11 @@ export class Board {
         if (title_input.style.display != "none") {
             this.button.disabled |= title_input.querySelector("input[type='text']").value.trim() === ""
         }
+
+        let uname_input = this.card_div.querySelector(":scope > .card-body > .row > .uname-input-group")
+        if (uname_input.style.display != "none") {
+            this.button.disabled |= title_input.querySelector("input[type='text']").value.trim() === ""
+        }
     }
 
     init_container(root_container) {
@@ -140,6 +145,21 @@ export class Board {
         this.editor_div = document.createElement("div")
         this.editor_div.classList.add("row", "my-3")
         {
+            let uname_input_group = document.createElement("div")
+            uname_input_group.classList.add("input-group", "uname-input-group")
+            if (this.user_name || this.parent) uname_input_group.style.display = "none"
+            let uname_span = document.createElement("span")
+            uname_span.classList.add("uname-group-text", "form-label", "form-control-sm")
+            uname_span.textContent = "Your name"
+            card_body.appendChild(uname_span)
+            let uname_input = document.createElement("input")
+            uname_input.addEventListener("change", e => {this.set_button_status()})
+            uname_input.classList.add("form-control", "form-control-sm")
+            uname_input.type = "text"
+            uname_input_group.appendChild(uname_span)
+            uname_input_group.appendChild(uname_input)
+            this.editor_div.appendChild(uname_input_group)
+    
             let editor = document.createElement("div")
             editor.id = Board.gen_id()
             this.editor_div.appendChild(editor)
@@ -155,11 +175,17 @@ export class Board {
                 if (title_input.style.display != "none") {
                     title = title_input.querySelector("input[type='text']").value
                 }
+
+                let writer = this.user_name
+                if (!writer) {
+                    let uname_input = this.get_root().card_div.querySelector(":scope > .card-body > .row > .uname-input-group")
+                    writer = uname_input.querySelector("input[type='text']").value
+                }
                 this.append_comment({
                     board: this,
                     comment: {
                         parent_id: this.data?.id,
-                        writer: this.user_name,
+                        writer: writer,
                         content: this.editor.getSemanticHTML(),
                         title: title
                     },
@@ -245,22 +271,4 @@ export class Board {
             this.editor_div.style.removeProperty("display")
         }
     }
-}
-
-window.main = function () {
-    var board = new Board(null, null, "foo bar", event => {
-        fetch("/forum/append_comment", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(event.comment)
-        })
-            .then(response => response.json())
-            .then(data => {
-                event.board.update_data(data)
-            })
-    })
-
-    board.init_container(document.getElementById("board"))
 }
