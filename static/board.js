@@ -76,7 +76,7 @@ export class Board {
 
         let uname_input = this.card_div.querySelector(":scope > .card-body > .row > .uname-input-group")
         if (uname_input.style.display != "none") {
-            this.button.disabled |= title_input.querySelector("input[type='text']").value.trim() === ""
+            this.button.disabled |= uname_input.querySelector("input[type='text']").value.trim() === ""
         }
     }
 
