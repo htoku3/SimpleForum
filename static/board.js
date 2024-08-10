@@ -31,18 +31,20 @@ export class Board {
      * @param {Board} parent 
      * @param {object} init_data
      * @param {string} user_name
-     * @param {EventListener} append_comment
+     * @param {EventListener} submit
+     * @param {object} options
      */
-    constructor(parent, init_data, user_name, append_comment) {
+    constructor(parent, init_data, user_name, submit, options) {
         this.parent = parent
         this.data = init_data
         this.user_name = user_name
+        this.options = options
         if (init_data) {
-            this.children = init_data.children.map(data => new Board(this, data, user_name, append_comment))
+            this.children = init_data.children.map(data => new Board(this, data, user_name, submit, options))
         } else {
             this.children = []
         }
-        this.append_comment = append_comment
+        this.submit = submit
     }
 
     get_root() {
@@ -86,9 +88,6 @@ export class Board {
         let div_col = document.createElement("div")
         div_col.classList.add("col")
 
-        div_col.addEventListener("load", e => {
-
-        })
         this.card_div = document.createElement("div")
         this.card_div.tabIndex = ID.get()
         this.card_div.classList.add("card", "row")
@@ -139,6 +138,7 @@ export class Board {
         if (this.parent) {
             children_div.classList.add("ms-3", "ps-3", "border-start")
         } else {
+            if (!this.options?.disable_topics)
             children_div.classList.add("mx-2", "px-2")
         }
         children_div.style.display = "none"
@@ -155,13 +155,13 @@ export class Board {
             uname_span.textContent = "Your name"
             card_body.appendChild(uname_span)
             let uname_input = document.createElement("input")
-            uname_input.addEventListener("change", e => {this.set_button_status()})
+            uname_input.addEventListener("change", e => { this.set_button_status() })
             uname_input.classList.add("form-control", "form-control-sm")
             uname_input.type = "text"
             uname_input_group.appendChild(uname_span)
             uname_input_group.appendChild(uname_input)
             this.editor_div.appendChild(uname_input_group)
-    
+
             let editor = document.createElement("div")
             editor.id = Board.gen_id()
             this.editor_div.appendChild(editor)
@@ -172,27 +172,7 @@ export class Board {
             let btn_comment = document.createElement("button")
             btn_comment.classList.add("btn", "btn-primary", "my-3")
             btn_comment.addEventListener("click", e => {
-                let title = null
-                let title_input = this.card_div.querySelector(".title-input-group")
-                if (title_input.style.display != "none") {
-                    title = title_input.querySelector("input[type='text']").value
-                }
-
-                let writer = this.user_name
-                if (!writer) {
-                    let uname_input = this.get_root().card_div.querySelector(":scope > .card-body > .row > .uname-input-group")
-                    writer = uname_input.querySelector("input[type='text']").value
-                }
-                this.append_comment({
-                    board: this,
-                    comment: {
-                        parent_id: this.data?.id,
-                        writer: writer,
-                        content: this.editor.getSemanticHTML(),
-                        title: title
-                    },
-                })
-                this.editor.deleteText(0, this.editor.getLength())
+                this.exec_submit()
             })
             btn_comment.textContent = this.parent ? "Reply" : "Comment"
             btn_comment.disabled = true
@@ -212,6 +192,18 @@ export class Board {
         } else {
             this.show_initial()
         }
+
+        if (!this.parent && !this.data && this.options?.disable_topics) {
+            this.submit({
+                board: this,
+                comment: {
+                    writer: "",
+                    content: "",
+                    title: ""
+                },
+            })
+        }
+
     }
 
     show_initial() {
@@ -229,48 +221,88 @@ export class Board {
 
     update_data(data) {
         this.data = data
-        this.children = data.children.map(child_data => new Board(this, child_data, this.user_name, this.append_comment))
+        this.children = data.children.map(child_data =>
+            new Board(this, child_data, this.user_name, this.submit, this.options))
         this.update_div()
     }
 
     update_div() {
         let card_head = this.card_div.querySelector(".card-header")
-        Board.cleanup(card_head)
-        let writer = document.createElement("span")
-        writer.textContent = this.data.writer
-        let date = document.createElement("small")
-        date.classList.add("mx-3")
-        date.textContent = new Date(this.data.date).toLocaleDateString("ja-JP")
-        card_head.appendChild(writer)
-        card_head.appendChild(date)
-        if (!this.parent && this.data.title) {
-            card_head.appendChild(document.createElement("hr"))
-            let title_span = document.createElement("div")
-            title_span.textContent = this.data.title
-            title_span.classList.add("h3", "me-5")
-            card_head.appendChild(title_span)
-        }
+        if (this.parent || !(this?.options.disable_topics)) {
+            Board.cleanup(card_head)
+            let writer = document.createElement("span")
+            writer.textContent = this.data.writer
+            let date = document.createElement("small")
+            date.classList.add("mx-3")
+            date.textContent = new Date(this.data.date).toLocaleDateString("ja-JP")
+            card_head.appendChild(writer)
+            card_head.appendChild(date)
+            if (!this.parent && this.data.title) {
+                card_head.appendChild(document.createElement("hr"))
+                let title_span = document.createElement("div")
+                title_span.textContent = this.data.title
+                title_span.classList.add("h3", "me-5")
+                card_head.appendChild(title_span)
+            }
 
-        this.card_div.querySelector(".title-input-group").style.display = "none"
-        let content = this.card_div.querySelector(".content")
-        content.style.removeProperty("display")
-        content.innerHTML = this.data.content
+            this.card_div.querySelector(".title-input-group").style.display = "none"
+            let content = this.card_div.querySelector(".content")
+            content.style.removeProperty("display")
+            content.innerHTML = this.data.content
 
-        let children_div = this.card_div.querySelector(".children")
-        Board.cleanup(children_div)
-        if (this.children.length > 0) {
-            this.card_div.querySelector(".hr").style.removeProperty("display")
-            this.children.forEach(board => board.init_container(children_div))
-            children_div.style.removeProperty("display")
+            let children_div = this.card_div.querySelector(".children")
+            Board.cleanup(children_div)
+            if (this.children.length > 0) {
+                this.card_div.querySelector(".hr").style.removeProperty("display")
+                this.children.forEach(board => board.init_container(children_div))
+                children_div.style.removeProperty("display")
+            } else {
+                this.card_div.querySelector(".hr").style.display = "none"
+                children_div.style.display = "none"
+            }
         } else {
-            this.card_div.querySelector(".hr").style.display = "none"
-            children_div.style.display = "none"
+            card_head.style.display = "none"
+            this.card_div.querySelector(".title-input-group").style.display = "none"
+            let children_div = this.card_div.querySelector(".children")
+            Board.cleanup(children_div)
+            if (this.children.length > 0) {
+                this.children.forEach(board => board.init_container(children_div))
+                children_div.style.removeProperty("display")
+            } else {
+                this.card_div.querySelector(".hr").style.display = "none"
+                children_div.style.display = "none"
+            }
         }
+
 
         if (this.parent) {
             this.editor_div.style.display = "none"
         } else {
             this.editor_div.style.removeProperty("display")
         }
+    }
+
+    exec_submit() {
+        let title = null
+        let title_input = this.card_div.querySelector(".title-input-group")
+        if (title_input.style.display != "none") {
+            title = title_input.querySelector("input[type='text']").value
+        }
+
+        let writer = this.user_name
+        if (!writer) {
+            let uname_input = this.get_root().card_div.querySelector(":scope > .card-body > .row > .uname-input-group")
+            writer = uname_input.querySelector("input[type='text']").value
+        }
+        this.submit({
+            board: this,
+            comment: {
+                parent_id: this.data?.id,
+                writer: writer,
+                content: this.editor.getSemanticHTML(),
+                title: title
+            },
+        })
+        this.editor.deleteText(0, this.editor.getLength())
     }
 }

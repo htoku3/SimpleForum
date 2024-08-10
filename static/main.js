@@ -13,6 +13,8 @@ window.main = function () {
             .then(data => {
                 event.board.update_data(data)
             })
+    }, {
+        disable_topics: false,
     })
 
     board.init_container(document.getElementById("board"))
