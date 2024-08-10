@@ -44,8 +44,13 @@ class Comment(db.Model):
 
 
 @app.route("/")
-def root():
-    return render_template("index.html")
+@app.route("/sample1")
+def sample1():
+    return render_template("sample1.html")
+
+@app.route("/sample2")
+def sample2():
+    return render_template("sample2.html")
 
 
 @app.route("/forum/get_data", methods=["POST", "GET"])

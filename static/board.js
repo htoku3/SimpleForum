@@ -13,7 +13,7 @@ class global_id {
 
 var ID = new global_id()
 
-export class Board {
+export default class Board {
     static gen_id() {
         return "id-" + URL.createObjectURL(new Blob()).slice(-36)
     }
@@ -37,6 +37,9 @@ export class Board {
         this.data = init_data
         this.settings = settings
         this.is_null_node = !this.parent && settings?.disable_topics
+        if (!this.settings.quill_settings) {
+            this.settings.quill_settings = { theme: 'snow' }
+        }
         if (init_data) {
             this.children = init_data.children.map(data => new Board(this, data, settings))
         } else {
@@ -174,7 +177,7 @@ export class Board {
             let editor = document.createElement("div")
             editor.id = Board.gen_id()
             this.editor_div.appendChild(editor)
-            this.editor = new Quill(editor, { theme: 'snow' })
+            this.editor = new Quill(editor, this.settings.quill_settings)
             this.editor.on("text-change", (delta, oldDelta, source) => this.set_button_status())
 
 
