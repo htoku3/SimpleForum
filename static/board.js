@@ -60,6 +60,7 @@ export class Board {
         this.card_div.classList.remove("border-primary")
         this.card_div.classList.add("border-secondary")
         this.card_div.querySelector(".card-header").classList.remove("text-bg-primary")
+        this.card_div.querySelector(".card-header").classList.add("text-bg-secondary")
 
         this.children.forEach(element => {
             element.close_reply_editor()
@@ -95,12 +96,13 @@ export class Board {
             this.get_root().close_reply_editor()
             if (!this.parent) return
             this.card_div.classList.add("border-primary")
+            this.card_div.querySelector(".card-header").classList.remove("text-bg-secondary")
             this.card_div.querySelector(".card-header").classList.add("text-bg-primary")
             this.editor_div.style.removeProperty("display")
         })
 
         let card_head = document.createElement("div")
-        card_head.classList.add("card-header")
+        card_head.classList.add("card-header", "text-bg-secondary")
         this.card_div.appendChild(card_head)
 
         let card_body = document.createElement("div")
