@@ -63,21 +63,21 @@ def get_forum_data():
 
 @app.route("/forum/append_comment", methods=["POST"])
 def append_comment():
-    new_comment = request.get_json()
+    data = request.get_json()
     parent: Optional[Comment]
-    if "parent_id" not in new_comment:
+    if "parent_id" not in data:
         parent = None
     else:
-        parent = db.session.get(Comment, int(new_comment["parent_id"]))
+        parent = db.session.get(Comment, int(data["parent_id"]))
 
     title = None
-    if "title" in new_comment:
-        title = new_comment["title"]
+    if "title" in data:
+        title = data["title"]
  
     new_comment = Comment(
-        writer=new_comment["writer"],
+        writer=data["writer"],
         date=datetime.now(),
-        content=new_comment["content"],
+        content=data["content"],
         parent=parent,
         title=title,
     )
@@ -87,12 +87,8 @@ def append_comment():
         parent.children.append(new_comment)
     db.session.commit()
 
-    if parent:
-        # Return Parent Tree
-        return jsonify(parent.to_dict())
-    else:
-        # Return generated new root
-        return jsonify(new_comment.to_dict())
+    return jsonify(new_comment.to_dict())
+
 
 
 with app.app_context():

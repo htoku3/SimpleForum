@@ -309,8 +309,9 @@ export default class Board {
             })
         })
             .then(response => response.json())
-            .then(data => {
-                this.update_data(data)
+            .then(new_comment => {
+                this.data.children.push(new_comment)
+                this.update_data(this.data)
             })
         this.editor.deleteText(0, this.editor.getLength())
     }
