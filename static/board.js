@@ -13,7 +13,7 @@ class global_id {
 
 var ID = new global_id()
 
-class Board {
+export class Board {
     static gen_id() {
         return "id-" + URL.createObjectURL(new Blob()).slice(-36)
     }
