@@ -133,6 +133,10 @@ export default class Board {
             content_div.classList.add("content", "row", "mb-3")
             content_div.style.display = "none"
             card_body.appendChild(content_div)
+            let ql_setting = structuredClone(this.settings.quill_settings)
+            ql_setting.modules.toolbar = false
+            this.content = new Quill(content_div, ql_setting)
+            this.content.enable(false)
 
             let hr = document.createElement("div")
             hr.classList.add("hr", "border-secondary", "border-bottom", "border-3")
@@ -254,7 +258,7 @@ export default class Board {
     }
 
     update_div() {
-        let card_head = this.card_div.querySelector(".card-header")
+        let card_head = this.card_div.querySelector(":scope > .card-header")
         if (card_head) {
             Board.cleanup(card_head)
             let writer = document.createElement("span")
@@ -274,13 +278,14 @@ export default class Board {
             this.card_div.querySelector(".title-input-group").style.display = "none"
         }
 
-        let content = this.card_div.querySelector(".content")
+        let content = this.card_div.querySelector(":scope > .card-body > .content")
         if (content) {
             content.style.removeProperty("display")
-            content.innerHTML = this.data.content
+            //content.innerHTML = this.data.content
+            this.content.clipboard.dangerouslyPasteHTML(this.data.content)
         }
 
-        let children_div = this.card_div.querySelector(".children")
+        let children_div = this.card_div.querySelector(":scope > .card-body > .children")
         Board.cleanup(children_div)
         if (this.children.length > 0) {
             let hr = this.card_div.querySelector(".hr")
