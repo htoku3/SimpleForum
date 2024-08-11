@@ -96,11 +96,10 @@ content にコメントの本文が記述されますが、Quill から得られ
 
 #### 新規トピック
 
-新規トピックでは、**parent_id** が null となっています。 ダミートピックの場合、**title** は null になります。
+新規トピックでは、**parent_id** が存在せず、ダミートピックの場合は **title** も存在しません。
 
 ```javascritp
 {
-  parent_id: null,
   writer: "John",                           // ユーザー名
   title: "New topic",                       // タイトル
   content: "Sample text of Topics",         // テキスト (HTML形式)
@@ -141,7 +140,7 @@ let settings = {
 これを true にすると、新規トピック作成がダミートピックになります。
 ダミートピックではトップにタイトル・本文が表示されず、入力も求められません。
 
-**init_container** 時にサーバーには title が null の submit が実行されます。
+初回コメントの送信時にサーバーには parent_id, title が共に存在しない submit が実行されます。
 
 #### quill_settings
 Quill に与える設定を指定します。入力欄のツールバーなどの設定に使用します。

@@ -42,6 +42,17 @@ export default class Board {
             this.settings.quill_settings = { theme: 'snow', modules: { toolbar: true } }
         }
 
+        // Create an empty root node if there are no topics at the root node
+        if (!this.data && this.is_null_node) {
+            this.data = {
+                writer: "",
+                title: null,
+                content: "",
+                date: "",
+                children: [],
+            }
+        }
+
         this.children = []
         if (typeof init_data === "number") {
             this.update_data()
@@ -51,7 +62,10 @@ export default class Board {
     }
 
     get user_name() {
-        if (!this.settings.user_name) return null;
+        if (!this.settings.user_name) {
+            let uname_input = this.root.card_div.querySelector(".uname-input-group")
+            return uname_input.querySelector("input[type='text']").value
+        }
         if (typeof this.settings.user_name === "string") return this.settings.user_name
         return this.settings.user_name.value
     }
@@ -199,7 +213,26 @@ export default class Board {
             let btn_comment = document.createElement("button")
             btn_comment.classList.add("btn", "btn-primary", "my-3")
             btn_comment.addEventListener("click", e => {
-                this.exec_submit()
+                if (this.is_null_node && !this.data.id) {
+                    fetch(this.settings.submit_url, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            writer: this.user_name,
+                            content: "",
+                            plain_text: "",
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(root_data => {
+                            this.data = root_data
+                            this.exec_submit()
+                        })
+                } else {
+                    this.exec_submit()
+                }
             })
             btn_comment.textContent = this.parent ? "Reply" : "Comment"
             btn_comment.disabled = true
@@ -218,17 +251,6 @@ export default class Board {
             this.update_div()
         } else {
             this.show_initial()
-        }
-
-        // Create an empty root node if there are no topics at the root node
-        if (!this.data && this.is_null_node) {
-            fetch(this.settings.submit_url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ writer: "", content: "", plain_text: "" })
-            })
-                .then(response => response.json())
-                .then(data => this.update_data(data))
         }
     }
 
@@ -314,16 +336,10 @@ export default class Board {
     }
 
     exec_submit() {
-        let title = null
         let title_input = this.card_div.querySelector(".title-input-group")
+        let title = undefined
         if (title_input && title_input.style.display != "none") {
             title = title_input.querySelector("input[type='text']").value
-        }
-
-        let writer = this.user_name
-        if (!writer) {
-            let uname_input = this.root.card_div.querySelector(".uname-input-group")
-            writer = uname_input.querySelector("input[type='text']").value
         }
 
         fetch(this.settings.submit_url, {
@@ -333,7 +349,7 @@ export default class Board {
             },
             body: JSON.stringify({
                 parent_id: this.data?.id,
-                writer: writer,
+                writer: this.user_name,
                 content: this.editor.getSemanticHTML(),
                 plain_text: this.editor.getText(),
                 title: title,
