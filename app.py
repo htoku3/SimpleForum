@@ -23,6 +23,7 @@ class Comment(db.Model):
     writer: Mapped[str] = mapped_column(nullable=False)
     date: Mapped[datetime] = mapped_column(nullable=False)
     content: Mapped[str] = mapped_column(nullable=False)
+    plain_text: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str] = mapped_column(nullable=True)
 
     parent_id: Mapped[int] = mapped_column(db.ForeignKey("comment.id"), nullable=True)
@@ -93,6 +94,7 @@ def append_comment():
         writer=data["writer"],
         date=datetime.now(),
         content=data["content"],
+        plain_text=data["plain_text"],
         parent=parent,
         title=title,
     )

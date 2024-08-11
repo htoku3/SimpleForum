@@ -225,7 +225,7 @@ export default class Board {
             fetch(this.settings.submit_url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ writer: "", content: "" })
+                body: JSON.stringify({ writer: "", content: "", plain_text: "" })
             })
                 .then(response => response.json())
                 .then(data => this.update_data(data))
@@ -335,7 +335,8 @@ export default class Board {
                 parent_id: this.data?.id,
                 writer: writer,
                 content: this.editor.getSemanticHTML(),
-                title: title
+                plain_text: this.editor.getText(),
+                title: title,
             })
         })
             .then(response => response.json())
