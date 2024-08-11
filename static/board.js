@@ -30,20 +30,33 @@ export default class Board {
      */
     constructor(parent, init_data, settings) {
         this.parent = parent
-        this.data = init_data
+        if (typeof init_data === "number") {
+            this.data = { id: init_data, children: [], writer: "", content: "" }
+        } else {
+            this.data = init_data
+        }
+
         this.settings = settings
         this.is_null_node = !this.parent && settings?.disable_topics
         if (!this.settings.quill_settings) {
             this.settings.quill_settings = { theme: 'snow' }
         }
-        if (init_data) {
+
+        this.children = []
+        if (typeof init_data === "number") {
+            this.update_data()
+        } else if (init_data) {
             this.children = init_data.children.map(data => new Board(this, data, settings))
-        } else {
-            this.children = []
         }
     }
 
-    get_root() {
+    get user_name() {
+        if (!this.settings.user_name) return null;
+        if (typeof this.settings.user_name === "string") return this.settings.user_name
+        return this.settings.user_name.value
+    }
+
+    get root() {
         let board = this
         while (board.parent) {
             board = board.parent
@@ -70,6 +83,8 @@ export default class Board {
 
     set_button_status() {
         this.button.disabled = (this.editor.getText().trim() === "")
+        this.button.disabled |= this.user_name == ""
+
         let title_input = this.card_div.querySelector(".title-input-group")
         if (title_input && title_input.style.display != "none") {
             this.button.disabled |= title_input.querySelector("input[type='text']").value.trim() === ""
@@ -93,7 +108,7 @@ export default class Board {
         this.card_div.addEventListener("focus", e => {
             // Update data before showing edit area.
             this.update_data()
-            this.get_root().close_reply_editor()
+            this.root.close_reply_editor()
             if (!this.parent) return
             this.card_div.classList.add("border-primary")
             let header = this.card_div.querySelector(".card-header")
@@ -162,7 +177,6 @@ export default class Board {
             if (!this.parent && !this.settings.user_name) {
                 let uname_input_group = document.createElement("div")
                 uname_input_group.classList.add("input-group", "uname-input-group")
-                if (this.settings.user_name || this.parent) uname_input_group.style.display = "none"
                 let uname_span = document.createElement("span")
                 uname_span.classList.add("uname-group-text", "form-label", "form-control-sm")
                 uname_span.textContent = "Your name"
@@ -222,7 +236,7 @@ export default class Board {
         let card_head = this.card_div.querySelector(".card-header")
         Board.cleanup(card_head)
         let writer = document.createElement("span")
-        writer.textContent = this.settings.user_name
+        writer.textContent = this.user_name
         card_head.appendChild(writer)
 
         let card_body = this.card_div.querySelector(".card-body")
@@ -306,9 +320,9 @@ export default class Board {
             title = title_input.querySelector("input[type='text']").value
         }
 
-        let writer = this.settings.user_name
+        let writer = this.user_name
         if (!writer) {
-            let uname_input = this.get_root().card_div.querySelector(".uname-input-group")
+            let uname_input = this.root.card_div.querySelector(".uname-input-group")
             writer = uname_input.querySelector("input[type='text']").value
         }
 

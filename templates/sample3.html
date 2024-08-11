@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row form-group">
+        <span>ユーザー名: </span><input id="user-name" type="text">
+    </div>
+    <div class="row">
+        <div class="col-4" id="topics">
+
+        </div>
+        <div class="col-8" id="thread">
+            <div id="board"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="module" src="{{ url_for('static', filename='board.js') }}"></script>
+
+<script type="module">
+    const toolbarOptions = [
+        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video', 'formula'],
+
+        [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+        [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+        [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+        [{ 'font': [] }],
+        [{ 'align': [] }],
+
+        ['clean']                                         // remove formatting button
+    ];
+
+    import Board from "./static/board.js"
+
+    function make_topics(data) {
+        let topics_div = document.getElementById("topics")
+        while (topics_div.firstChild) { topics_div.removeChild(topics_div.firstChild) }
+
+        let card = document.createElement("a")
+        card.classList.add("card", "text-white", "bg-info", "my-2")
+        card.addEventListener("click", e => {
+            let user_name = document.getElementById("user-name").value
+            card.href = "/sample3?user_name=" + user_name
+        })
+
+        let card_body = document.createElement("div")
+        card_body.classList.add("h1", "text-center")
+        card_body.textContent = "New Topics"
+        card.appendChild(card_body)
+        topics_div.appendChild(card)
+        data.forEach(element => {
+            let card = document.createElement("a")
+            card.classList.add("card", "text-white", "bg-secondary", "my-2")
+            card.addEventListener("click", e => {
+                let user_name = document.getElementById("user-name").value
+                card.href = "/sample3?id=" + element.id + "&user_name=" + user_name
+            })
+            {
+                let card_head = document.createElement("div")
+                card_head.classList.add("card-head")
+                {
+                    let writer = document.createElement("span")
+                    writer.classList.add("mx-3")
+                    writer.textContent = element.writer
+                    let date = document.createElement("small")
+                    date.classList.add("mx-3")
+                    date.textContent = new Date(element.date).toLocaleDateString("ja-JP")
+                    card_head.appendChild(writer)
+                    card_head.appendChild(date)
+                }
+                card.appendChild(card_head)
+
+                let card_body = document.createElement("div")
+                card_body.classList.add("text-dark", "bg-light")
+                card_body.textContent = element.title
+                card.appendChild(card_body)
+            }
+            topics_div.appendChild(card)
+        })
+    }
+
+    window.main = function () {
+        let params = new URL(document.location).searchParams;
+        if (params.get("user_name")) {
+            let user_name = document.getElementById("user-name").value = params.get("user_name")
+        }
+
+
+        fetch("/forum/get_topics", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(response => response.json())
+            .then(data => make_topics(data))
+
+        if (params.get("id")) {
+            let id = parseInt(params.get("id"))
+            var board = new Board(null, id, {
+                get_data_url: "/forum/get_data",
+                submit_url: "/forum/append_comment",
+                user_name: document.getElementById("user-name"),
+                quill_settings: {
+                    modules: {
+                        syntax: true,
+                        toolbar: toolbarOptions
+                    },
+                    theme: 'snow'
+                }
+            })
+            board.init_container(document.getElementById("board"))
+        } else {
+            var board = new Board(null, null, {
+                get_data_url: "/forum/get_data",
+                submit_url: "/forum/append_comment",
+                user_name: document.getElementById("user-name"),
+                quill_settings: {
+                    modules: {
+                        syntax: true,
+                        toolbar: toolbarOptions
+                    },
+                    theme: 'snow'
+                }
+            })
+            board.init_container(document.getElementById("board"))
+        }
+    }
+</script>
+{% endblock %}
