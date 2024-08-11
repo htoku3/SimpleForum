@@ -17,8 +17,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
 db.init_app(app)
 
 
-class Comment(db.Model):
-    __tablename__ = "comment"
+class Board(db.Model):
+    __tablename__ = "board"
     id: Mapped[int] = mapped_column(primary_key=True)
     writer: Mapped[str] = mapped_column(nullable=False)
     date: Mapped[datetime] = mapped_column(nullable=False)
@@ -26,10 +26,10 @@ class Comment(db.Model):
     plain_text: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str] = mapped_column(nullable=True)
 
-    parent_id: Mapped[int] = mapped_column(db.ForeignKey("comment.id"), nullable=True)
-    parent: Mapped[Optional["Comment"]] = relationship("Comment", remote_side=[id])
+    parent_id: Mapped[int] = mapped_column(db.ForeignKey("board.id"), nullable=True)
+    parent: Mapped[Optional["Board"]] = relationship("Board", remote_side=[id])
 
-    children: Mapped[List["Comment"]] = relationship("Comment", back_populates="parent")
+    children: Mapped[List["Board"]] = relationship("Board", back_populates="parent")
 
     def to_dict(self, contain_children=True):
         data = dict()
@@ -63,8 +63,8 @@ def sample3():
 
 @app.route("/forum/get_topics", methods=["POST"])
 def get_topics():
-    query = db.select(Comment).filter(Comment.title != None)
-    topics: List[Comment] = db.session.execute(query).scalars().all()
+    query = db.select(Board).filter(Board.title != None)
+    topics: List[Board] = db.session.execute(query).scalars().all()
     return jsonify([t.to_dict(contain_children=False) for t in topics])
 
 
@@ -73,24 +73,24 @@ def get_forum_data():
     data = request.get_json()
     if not "id" in data:
         return abort(505)
-    data: Comment = db.session.get(Comment, int(data["id"]))
+    data: Board = db.session.get(Board, int(data["id"]))
     return jsonify(data.to_dict())
 
 
 @app.route("/forum/append_comment", methods=["POST"])
 def append_comment():
     data = request.get_json()
-    parent: Optional[Comment]
+    parent: Optional[Board]
     if "parent_id" not in data:
         parent = None
     else:
-        parent = db.session.get(Comment, int(data["parent_id"]))
+        parent = db.session.get(Board, int(data["parent_id"]))
 
     title = None
     if "title" in data:
         title = data["title"]
 
-    new_comment = Comment(
+    new_board = Board(
         writer=data["writer"],
         date=datetime.now(),
         content=data["content"],
@@ -98,13 +98,13 @@ def append_comment():
         parent=parent,
         title=title,
     )
-    db.session.add(new_comment)
+    db.session.add(new_board)
 
     if parent:
-        parent.children.append(new_comment)
+        parent.children.append(new_board)
     db.session.commit()
 
-    return jsonify(new_comment.to_dict())
+    return jsonify(new_board.to_dict())
 
 
 with app.app_context():
