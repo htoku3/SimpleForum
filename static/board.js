@@ -223,6 +223,7 @@ export default class Board {
                             writer: this.user_name,
                             content: "",
                             plain_text: "",
+                            submit_params: this.settings.submit_params,
                         })
                     })
                         .then(response => response.json())
@@ -353,6 +354,7 @@ export default class Board {
                 content: this.editor.getSemanticHTML(),
                 plain_text: this.editor.getText(),
                 title: title,
+                submit_params: this.settings.submit_params,
             })
         })
             .then(response => response.json())

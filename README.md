@@ -134,6 +134,7 @@ let settings = {
   submit_url: "/forum/append_comment",
   disable_topics: false,
   quill_settings: { theme: 'snow', modules: {toolbar:true} }
+  submit_params: {}
 }
 ```
 #### disable_topics
@@ -145,3 +146,6 @@ let settings = {
 #### quill_settings
 Quill に与える設定を指定します。入力欄のツールバーなどの設定に使用します。
 
+#### submit_params
+submit_url に submit 時に渡したい追加のパラメータです。
+そのまま、 submit_params というキーを通してサーバーサイドに送信されます。
