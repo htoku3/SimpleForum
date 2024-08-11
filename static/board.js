@@ -28,7 +28,7 @@ export default class Board {
      * @param {object} settings
      * @param {Board} parent 
      */
-    constructor(init_data, settings, parent=null) {
+    constructor(init_data, settings, parent = null) {
         this.parent = parent
         if (typeof init_data === "number") {
             this.data = { id: init_data, children: [], writer: "", content: "" }
@@ -39,7 +39,7 @@ export default class Board {
         this.settings = settings
         this.is_null_node = !this.parent && settings?.disable_topics
         if (!this.settings.quill_settings) {
-            this.settings.quill_settings = { theme: 'snow' }
+            this.settings.quill_settings = { theme: 'snow', modules: { toolbar: true } }
         }
 
         this.children = []
