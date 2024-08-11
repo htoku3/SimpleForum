@@ -104,7 +104,7 @@
 
         if (params.get("id")) {
             let id = parseInt(params.get("id"))
-            var board = new Board(null, id, {
+            var board = new Board(id, {
                 get_data_url: "/forum/get_data",
                 submit_url: "/forum/append_comment",
                 user_name: document.getElementById("user-name"),
@@ -118,7 +118,7 @@
             })
             board.init_container(document.getElementById("board"))
         } else {
-            var board = new Board(null, null, {
+            var board = new Board(null, {
                 get_data_url: "/forum/get_data",
                 submit_url: "/forum/append_comment",
                 user_name: document.getElementById("user-name"),

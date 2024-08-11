@@ -24,11 +24,11 @@ export default class Board {
 
     /**
      * 
-     * @param {Board} parent 
      * @param {object} init_data
      * @param {object} settings
+     * @param {Board} parent 
      */
-    constructor(parent, init_data, settings) {
+    constructor(init_data, settings, parent=null) {
         this.parent = parent
         if (typeof init_data === "number") {
             this.data = { id: init_data, children: [], writer: "", content: "" }
@@ -46,7 +46,7 @@ export default class Board {
         if (typeof init_data === "number") {
             this.update_data()
         } else if (init_data) {
-            this.children = init_data.children.map(data => new Board(this, data, settings))
+            this.children = init_data.children.map(data => new Board(data, settings, this))
         }
     }
 
@@ -259,7 +259,7 @@ export default class Board {
                 .then(data => {
                     this.data = data
                     this.children = data.children.map(child_data =>
-                        new Board(this, child_data, this.settings))
+                        new Board(child_data, this.settings, this))
                     this.update_div()
                 })
             return
@@ -267,7 +267,7 @@ export default class Board {
 
         this.data = data
         this.children = data.children.map(child_data =>
-            new Board(this, child_data, this.settings))
+            new Board(child_data, this.settings, this))
         this.update_div()
     }
 
