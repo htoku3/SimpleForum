@@ -111,5 +111,38 @@ content にコメントの本文が記述されますが、Quill から得られ
 #### 戻り値
 これらのエンドポイントは、新規に追加されたノードの data を "get_data_url" と同様の形式で返す必要があります。
 
-# オプション
+# Board コンストラクタ
+
+Board のコンストラクタ引数は以下のとおりです。
+```javascript
+board = new Board(init_data, settings, parent=null)
+```
+* init_data:  
+  初期のデータ (JSON)、または、データ取得エンドポイントからそれを得られる固有IDを指定します。
+  null を指定すると新規トピックの作成、トピック ID を指定するとそれを開く動作となります。  
+* settings:  
+  設定を記述します。最低限 **get_data_url** と **submit_url** を含む必要があります。
+* parent:  
+  通常は指定しません。クラス内部で再帰的に展開する際に使用する引数です。
+
+### settings
+
+**settings** にはエンドポイント以外にもオプション設定を渡します。
+
+```javascript
+let settings = {
+  get_data_url: "/forum/get_data",
+  submit_url: "/forum/append_comment",
+  disable_topics: false,
+  quill_settings: { theme: 'snow', modules: {toolbar:true} }
+}
+```
+#### disable_topics
+これを true にすると、新規トピック作成がダミートピックになります。
+ダミートピックではトップにタイトル・本文が表示されず、入力も求められません。
+
+**init_container** 時にサーバーには title が null の submit が実行されます。
+
+#### quill_settings
+Quill に与える設定を指定します。入力欄のツールバーなどの設定に使用します。
 
