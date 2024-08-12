@@ -17,9 +17,7 @@ Bord クラスを生成し、 **init_container()** に掲示板にしたい要�
 ```html
 <body onload="main()">
   <div id="board"></div>
-<body>
-
-<script type="module" src="static/board.js"></script>
+</body>
 
 <script type="module">
   import Board from "./static/board.js"
