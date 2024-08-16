@@ -105,7 +105,9 @@
             var board = new Board(id, {
                 get_data_url: "/forum/get_data",
                 submit_url: "/forum/append_comment",
+                edit_url: "/forum/edit_content",
                 user_name: document.getElementById("user-name"),
+                disable_topics: false,
                 quill_settings: {
                     modules: {
                         syntax: true,
@@ -119,6 +121,7 @@
             var board = new Board(null, {
                 get_data_url: "/forum/get_data",
                 submit_url: "/forum/append_comment",
+                edit_url: "/forum/edit_content",
                 user_name: document.getElementById("user-name"),
                 quill_settings: {
                     modules: {
