@@ -421,7 +421,7 @@ export default class Board {
             header_content.appendChild(BoardHeader(this.data))
             header_row.appendChild(header_content)
 
-            header_row.appendChild(this.make_edit_button())
+            if (this.settings?.is_editable(this.data)) header_row.appendChild(this.make_edit_button())
             card_head.appendChild(header_row)
             this.card_div.querySelector(".title-input-group").style.display = "none"
         }
