@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from flask import Flask
 from flask import render_template, jsonify, request, abort
@@ -92,7 +92,7 @@ def append_comment():
 
     new_board = Board(
         writer=data["writer"],
-        date=datetime.now(),
+        date=datetime.now(timezone.utc),
         content=data["content"],
         plain_text=data["plain_text"],
         parent=parent,
@@ -105,6 +105,22 @@ def append_comment():
     db.session.commit()
 
     return jsonify(new_board.to_dict())
+
+
+@app.route("/forum/edit_content", methods=["POST"])
+def edit_content():
+    data = request.get_json()
+    if "id" not in data:
+        return abort(505)
+
+    board = db.session.get(Board, int(data["id"]))
+    if not board:
+        return abort(505)
+
+    board.content = data["content"]
+    board.plain_text = data["plain_text"]
+    db.session.commit()
+    return jsonify(board.to_dict())
 
 
 with app.app_context():

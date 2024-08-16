@@ -89,7 +89,7 @@
     window.main = function () {
         let params = new URL(document.location).searchParams;
         if (params.get("user_name")) {
-            let user_name = document.getElementById("user-name").value = params.get("user_name")
+            document.getElementById("user-name").value = params.get("user_name")
         }
 
 
@@ -105,7 +105,12 @@
             var board = new Board(id, {
                 get_data_url: "/forum/get_data",
                 submit_url: "/forum/append_comment",
+                edit_url: "/forum/edit_content",
+                is_editable: data => {
+                    return data.writer === document.getElementById("user-name").value
+                },
                 user_name: document.getElementById("user-name"),
+                disable_topics: false,
                 quill_settings: {
                     modules: {
                         syntax: true,
@@ -119,6 +124,10 @@
             var board = new Board(null, {
                 get_data_url: "/forum/get_data",
                 submit_url: "/forum/append_comment",
+                edit_url: "/forum/edit_content",
+                is_editable: data => {
+                    return data.writer === document.getElementById("user-name").value
+                },
                 user_name: document.getElementById("user-name"),
                 quill_settings: {
                     modules: {
