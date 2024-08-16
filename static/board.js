@@ -162,9 +162,9 @@ export default class Board {
             content_div.classList.add("content", "row", "mb-3")
             content_div.style.display = "none"
             card_body.appendChild(content_div)
-            let ql_setting = structuredClone(this.settings.quill_settings)
-            ql_setting.modules.toolbar = false
-            this.content = new Quill(content_div, ql_setting)
+            this.content = new Quill(content_div, this.settings.quill_settings)
+            let toolbar = this.content.getModule('toolbar')
+            toolbar.container.style.display = "none"
             this.content.enable(false)
 
             let hr = document.createElement("div")
