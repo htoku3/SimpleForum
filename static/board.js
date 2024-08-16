@@ -351,8 +351,8 @@ export default class Board {
             body: JSON.stringify({
                 parent_id: this.data?.id,
                 writer: this.user_name,
-                content: this.editor.getSemanticHTML(),
-                plain_text: this.editor.getText(),
+                content: this.editor.root.innerHTML,
+                plain_text: this.editor.root.innerText,
                 title: title,
                 submit_params: this.settings.submit_params,
             })
